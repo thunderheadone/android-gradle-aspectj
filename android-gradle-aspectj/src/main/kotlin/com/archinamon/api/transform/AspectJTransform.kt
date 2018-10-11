@@ -207,9 +207,6 @@ internal abstract class AspectJTransform(val project: Project, private val polic
 
         val hasAjRt = hasAj || aspectJWeaver.classPath.any { it.name.contains(AJRUNTIME); }
 
-
-        // TODO: if not hasAjRt then STILL output files
-        // IE always output the input that was given
         if (hasAjRt) {
             logWeaverBuildPolicy(policy)
             aspectJWeaver.doWeave()
@@ -222,6 +219,11 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         } else {
             logEnvInvalid()
             logNoAugmentation()
+            // TODO: should we write out the files before throwing exception?
+            // TODO: consider adding flag to continue build without throwing fatal exception
+            throw GradleException("""Thunderhead AspectJ plugin configured, AspectJ runtime not on classpath.
+                | Try clearing gradle cache and build directory.
+                | Check IDE is not in offline mode.""".trimMargin());
         }
     }
 
