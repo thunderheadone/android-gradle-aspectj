@@ -104,6 +104,9 @@ internal abstract class AspectJTransform(val project: Project, private val polic
     override fun transform(transformInvocation: TransformInvocation) {
         // bypassing transformer for non-test variant data in ConfigScope.TEST
         if (!verifyBypassInTestScope(transformInvocation.context)) {
+            // TODO: this bypass does not adhere to the "Transformer Contract"
+            // Each transform MUST write out the input it was given.
+            // IE. fileA -> Transform -> FileA
             logBypassTransformation()
             return
         }
@@ -136,15 +139,24 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         includeCompiledAspects(transformInvocation, outputDir)
         val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
 
+        var hasAj = false
         inputs.forEach proceedInputs@ { input ->
             if (input.directoryInputs.isEmpty() && input.jarInputs.isEmpty())
                 return@proceedInputs //if no inputs so nothing to proceed
 
             input.directoryInputs.forEach { dir ->
+                // NOTE: The java doc for `name` is quoted as being unreliable.
+                // TODO: Is there another handle to check for AJ runtime being present?
+                hasAj = hasAj || dir.name.contains(AJRUNTIME)
                 aspectJWeaver.inPath shl dir.file
                 aspectJWeaver.classPath shl dir.file
+
             }
             input.jarInputs.forEach { jar ->
+                // NOTE: The java doc for `name` is quoted as being unreliable.
+                // TODO: Is there another handle to check for AJ runtime being present?
+                hasAj = hasAj || jar.name.contains(AJRUNTIME)
+
                 aspectJWeaver.classPath shl jar.file
 
                 if (modeComplex()) {
@@ -174,8 +186,11 @@ internal abstract class AspectJTransform(val project: Project, private val polic
             }
         }
 
-        val hasAjRt = aspectJWeaver.classPath.any { it.name.contains(AJRUNTIME); }
+        val hasAjRt = hasAj || aspectJWeaver.classPath.any { it.name.contains(AJRUNTIME); }
 
+
+        // TODO: if not hasAjRt then STILL output files
+        // IE always output the input that was given
         if (hasAjRt) {
             logWeaverBuildPolicy(policy)
             aspectJWeaver.doWeave()
