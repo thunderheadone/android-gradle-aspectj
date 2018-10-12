@@ -123,7 +123,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
     override fun transform(transformInvocation: TransformInvocation) {
         // bypassing transformer for non-test variant data in ConfigScope.TEST
         if (!verifyBypassInTestScope(transformInvocation.context)) {
-            // TODO: this bypass does not adhere to the "Transformer Contract"
+            // TODO: THX-35249 this bypass does not adhere to the "Transformer Contract"
             // Each transform MUST write out the input it was given.
             // IE. fileA -> Transform -> FileA
             logBypassTransformation()
@@ -165,7 +165,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
 
             input.directoryInputs.forEach { dir ->
                 // NOTE: The java doc for `name` is quoted as being unreliable.
-                // TODO: Is there another handle to check for AJ runtime being present?
+                // TODO: THX-35245 Is there another handle to check for AJ runtime being present?
                 hasAj = hasAj || dir.name.contains(AJRUNTIME)
                 aspectJWeaver.inPath shl dir.file
                 aspectJWeaver.classPath shl dir.file
@@ -173,7 +173,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
             }
             input.jarInputs.forEach { jar ->
                 // NOTE: The java doc for `name` is quoted as being unreliable.
-                // TODO: Is there another handle to check for AJ runtime being present?
+                // TODO: THX-35245 Is there another handle to check for AJ runtime being present?
                 hasAj = hasAj || jar.name.contains(AJRUNTIME)
 
                 aspectJWeaver.classPath shl jar.file
@@ -223,7 +223,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
             // TODO: consider adding flag to continue build without throwing fatal exception
             throw GradleException("""Thunderhead AspectJ plugin configured, AspectJ runtime not on classpath.
                 | Try clearing gradle cache and build directory.
-                | Check IDE is not in offline mode.""".trimMargin());
+                | Check IDE is not in offline mode.""".trimMargin())
         }
     }
 
