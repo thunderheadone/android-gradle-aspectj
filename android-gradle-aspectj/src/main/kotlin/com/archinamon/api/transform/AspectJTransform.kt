@@ -12,9 +12,6 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
- *
- *    Note: This is a new license header as previous contributor did
- *    not provide a boilerplate header and copyright.
  */
 
 package com.archinamon.api.transform
@@ -123,7 +120,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
     override fun transform(transformInvocation: TransformInvocation) {
         // bypassing transformer for non-test variant data in ConfigScope.TEST
         if (!verifyBypassInTestScope(transformInvocation.context)) {
-            // TODO: THX-35249 this bypass does not adhere to the "Transformer Contract"
+            // TODO: THX-35246 this bypass does not adhere to the "Transformer Contract"
             // Each transform MUST write out the input it was given.
             // IE. fileA -> Transform -> FileA
             logBypassTransformation()
