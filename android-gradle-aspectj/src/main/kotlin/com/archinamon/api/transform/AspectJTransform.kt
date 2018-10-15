@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2018 Thunderhead
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.archinamon.api.transform
 
 import com.android.build.api.transform.*
@@ -104,6 +120,9 @@ internal abstract class AspectJTransform(val project: Project, private val polic
     override fun transform(transformInvocation: TransformInvocation) {
         // bypassing transformer for non-test variant data in ConfigScope.TEST
         if (!verifyBypassInTestScope(transformInvocation.context)) {
+            // TODO: THX-35246 this bypass does not adhere to the "Transformer Contract"
+            // Each transform MUST write out the input it was given.
+            // IE. fileA -> Transform -> FileA
             logBypassTransformation()
             return
         }
@@ -136,15 +155,24 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         includeCompiledAspects(transformInvocation, outputDir)
         val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
 
+        var hasAj = false
         inputs.forEach proceedInputs@ { input ->
             if (input.directoryInputs.isEmpty() && input.jarInputs.isEmpty())
                 return@proceedInputs //if no inputs so nothing to proceed
 
             input.directoryInputs.forEach { dir ->
+                // NOTE: The java doc for `name` is quoted as being unreliable.
+                // TODO: THX-35245 Is there another handle to check for AJ runtime being present?
+                hasAj = hasAj || dir.name.contains(AJRUNTIME)
                 aspectJWeaver.inPath shl dir.file
                 aspectJWeaver.classPath shl dir.file
+
             }
             input.jarInputs.forEach { jar ->
+                // NOTE: The java doc for `name` is quoted as being unreliable.
+                // TODO: THX-35245 Is there another handle to check for AJ runtime being present?
+                hasAj = hasAj || jar.name.contains(AJRUNTIME)
+
                 aspectJWeaver.classPath shl jar.file
 
                 if (modeComplex()) {
@@ -174,7 +202,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
             }
         }
 
-        val hasAjRt = aspectJWeaver.classPath.any { it.name.contains(AJRUNTIME); }
+        val hasAjRt = hasAj || aspectJWeaver.classPath.any { it.name.contains(AJRUNTIME); }
 
         if (hasAjRt) {
             logWeaverBuildPolicy(policy)
@@ -188,6 +216,11 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         } else {
             logEnvInvalid()
             logNoAugmentation()
+            // TODO: should we write out the files before throwing exception?
+            // TODO: consider adding flag to continue build without throwing fatal exception
+            throw GradleException("""Thunderhead AspectJ plugin configured, AspectJ runtime not on classpath.
+                | Try clearing gradle cache and build directory.
+                | Check IDE is not in offline mode.""".trimMargin())
         }
     }
 
