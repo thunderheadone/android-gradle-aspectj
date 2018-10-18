@@ -40,7 +40,7 @@ if (bintrayUser && bintrayApiKey) {
             websiteUrl = siteUrl
             issueTrackerUrl = issuesUrl
             vcsUrl = gitUrl
-            licenses = allLicenses
+            licenses = [allLicenses]
             labels = ['android', 'gradle']
             publicDownloadNumbers = false
 
