@@ -14,23 +14,35 @@
  *    limitations under the License.
  */
 
-
 buildscript {
-    apply from: 'gradleScripts/dependencies.gradle'
-    apply from: 'gradleScripts/searchProperties.gradle'
-
     repositories {
         google()
         jcenter()
         mavenCentral()
+    }
+    dependencies {
+        classpath gradlePlugins.bintray
+        classpath gradlePlugins.kotlin
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
+// need java plugin for this: https://github.com/gradle/gradle/issues/1118
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply from: 'publishing.gradle'
+apply from: 'bintray.gradle'
+
+dependencies {
+    implementation jetbrains.kotlin_std_lib_java_8
+    implementation gradleApi()
+    implementation android.buildTools
+    implementation aspectj.runtime
+    implementation aspectj.tools
+
+    testImplementation testLibraries.junit
+    testImplementation jetbrains.kotlin_std_lib
+    testImplementation jetbrains.kotlin_test_junit
+    testImplementation gradleApi()
+    testImplementation android.buildTools
 }
 

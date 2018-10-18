@@ -14,5 +14,12 @@
  *    limitations under the License.
  */
 
-rootProject.name = 'ThunderheadAndroidGradleAspectJ'
-include ':android-gradle-plugin-aspectj'
+ext.searchProperty = { key ->
+    if (System.getProperty(key)) {
+        return System.getProperty(key)
+    } else {
+        def props = new Properties()
+        props.load(new FileInputStream(rootProject.file("local.properties")))
+        return props[key] ?: ''
+    }
+}
