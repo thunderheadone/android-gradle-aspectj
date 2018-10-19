@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2016 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
