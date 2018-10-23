@@ -15,23 +15,12 @@
  *    limitations under the License.
  */
 
-
-buildscript {
-    apply from: 'gradleScripts/dependencies.gradle'
-    apply from: 'gradleScripts/searchProperties.gradle'
-
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
+ext.searchProperty = { key ->
+    if (System.getProperty(key)) {
+        return System.getProperty(key)
+    } else {
+        def props = new Properties()
+        props.load(new FileInputStream(rootProject.file("local.properties")))
+        return props[key] ?: ''
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-

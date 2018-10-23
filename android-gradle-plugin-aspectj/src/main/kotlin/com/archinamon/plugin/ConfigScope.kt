@@ -15,23 +15,18 @@
  *    limitations under the License.
  */
 
+package com.archinamon.plugin
 
-buildscript {
-    apply from: 'gradleScripts/dependencies.gradle'
-    apply from: 'gradleScripts/searchProperties.gradle'
+/**
+ * TODO: Add description
+ *
+ * @author archinamon on 12/04/17.
+ */
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
+internal enum class ConfigScope {
+
+    STANDARD,
+    PROVIDE,
+    EXTEND,
+    TEST;
 }
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-

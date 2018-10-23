@@ -15,23 +15,19 @@
  *    limitations under the License.
  */
 
+package com.archinamon.api.transform
 
-buildscript {
-    apply from: 'gradleScripts/dependencies.gradle'
-    apply from: 'gradleScripts/searchProperties.gradle'
+import com.android.build.api.transform.TransformInvocation
+import com.archinamon.utils.logBypassTransformation
+import org.gradle.api.Project
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
+internal class ProvidesTransformer(project: Project): AspectJTransform(project, BuildPolicy.SIMPLE) {
+
+    override fun prepareProject(): AspectJTransform {
+        return this
+    }
+
+    override fun transform(transformInvocation: TransformInvocation) {
+        logBypassTransformation()
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-

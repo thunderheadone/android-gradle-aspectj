@@ -15,23 +15,21 @@
  *    limitations under the License.
  */
 
+package com.archinamon.utils
 
-buildscript {
-    apply from: 'gradleScripts/dependencies.gradle'
-    apply from: 'gradleScripts/searchProperties.gradle'
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.io.File
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
+class AarExploringTest {
+
+    @Rule
+    @JvmField
+    val folder = TemporaryFolder()
+
+    @Test
+    fun noNPEIfFileNotExist() {
+        findPackageNameIfAar(File("/build-cache/this/file/not/exist"))
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-
