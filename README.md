@@ -7,13 +7,13 @@
 [![Download](https://api.bintray.com/packages/thunderheadone/Android/Android-Gradle-AspectJ/images/download.svg) ](https://bintray.com/thunderheadone/Android/Android-Gradle-AspectJ/_latestVersion) 
 
 A Gradle plugin which adds the AspectJ toolchain to an Android build.
-Writing code with the AspectJ language in `.aj` files and/or using java annotations.
+Write code with the AspectJ language in `.aj` files and/or using java annotations.
 
 Supported Android Gradle Plugin Version: `3.0.1`
 
 ## Installation
 1. Update your **top-level** `build.gradle` to include the plugin in the build.
-+ Update the `buildScript` `repositories` to include jcenter if it is not present 
++ Update the `buildscript` `repositories` to include jcenter if it is not present 
 and add a `classpath` dependency on the plugin as shown in the following example:
 ``` groovy
 buildscript {
@@ -163,7 +163,7 @@ This won't affect `unitTest` variants.
 ## ProGuard
 
 Correct tuning will depend on your own usage of aspect classes. 
-Iff you declares inter-type injections you'll have to predict side-effects 
+If you declares inter-type injections you'll have to predict side-effects 
 and define your annotations/interfaces which you inject into java classes/methods/etc. in your proguard config.
 
 Basic rules you'll need to declare for your project:
