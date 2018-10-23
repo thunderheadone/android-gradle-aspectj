@@ -34,15 +34,15 @@ apply from: 'publishing.gradle'
 apply from: 'bintray.gradle'
 
 dependencies {
-    implementation jetbrains.kotlin_std_lib_java_8
+    implementation jetbrains.kotlinStdLibJava8
     implementation gradleApi()
     implementation android.buildTools
     implementation aspectj.runtime
     implementation aspectj.tools
 
     testImplementation testLibraries.junit
-    testImplementation jetbrains.kotlin_std_lib
-    testImplementation jetbrains.kotlin_test_junit
+    testImplementation jetbrains.kotlinStdLib
+    testImplementation jetbrains.kotlinTestJunit
     testImplementation gradleApi()
     testImplementation android.buildTools
 }

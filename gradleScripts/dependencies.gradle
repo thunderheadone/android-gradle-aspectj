@@ -25,9 +25,9 @@ ext {
             bintray: 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     ]
     jetbrains = [
-            kotlin_std_lib_java_8: "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version",
-            kotlin_std_lib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
-            kotlin_test_junit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+            kotlinStdLibJava8: "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version",
+            kotlinStdLib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
+            kotlinTestJunit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     ]
     aspectj = [
             runtime: "org.aspectj:aspectjrt:$aspectj_version",

@@ -18,7 +18,6 @@
 def bintrayUser = searchProperty('bintrayUser')
 def bintrayApiKey = searchProperty('bintrayApiKey')
 
-
 if (bintrayUser && bintrayApiKey) {
     apply plugin: 'com.jfrog.bintray'
 
