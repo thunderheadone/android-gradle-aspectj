@@ -163,7 +163,7 @@ This won't affect `unitTest` variants.
 ## ProGuard
 
 Correct tuning will depend on your own usage of aspect classes. 
-If you declares inter-type injections you'll have to predict side-effects 
+If you declare inter-type injections you'll have to predict side-effects 
 and define your annotations/interfaces which you inject into java classes/methods/etc. in your proguard config.
 
 Basic rules you'll need to declare for your project:
