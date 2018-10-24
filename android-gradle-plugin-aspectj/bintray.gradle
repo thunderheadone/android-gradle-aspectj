@@ -41,7 +41,7 @@ if (bintrayUser && bintrayApiKey) {
             issueTrackerUrl = issuesUrl
             vcsUrl = gitUrl
             licenses = [allLicenses]
-            labels = ['android', 'gradle', 'java', 'aspecjt']
+            labels = ['android', 'gradle', 'java', 'aspectj']
             publicDownloadNumbers = false
 
             githubRepo = githubRepository //Optional Github repository
