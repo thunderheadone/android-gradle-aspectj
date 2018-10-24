@@ -4,7 +4,7 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.1.51-blue.svg)](http://kotlinlang.org) 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Download](https://api.bintray.com/packages/thunderheadone/Android/Android-Gradle-AspectJ/images/download.svg) ](https://bintray.com/thunderheadone/Android/Android-Gradle-AspectJ/_latestVersion) 
+[![Download](https://api.bintray.com/packages/thunderheadone/Android/android-gradle-plugin-aspectj/images/download.svg) ](https://bintray.com/thunderheadone/Android/android-gradle-plugin-aspectj/_latestVersion) 
 
 A Gradle plugin which adds the AspectJ toolchain to an Android build.
 Write code with the AspectJ language in `.aj` files and/or using java annotations.
