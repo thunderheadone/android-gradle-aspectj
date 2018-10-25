@@ -18,8 +18,8 @@ and add a `classpath` dependency on the plugin as shown in the following example
 ``` groovy
 buildscript {
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
@@ -31,9 +31,9 @@ buildscript {
 ``` groovy
 allprojects {
     repositories {
+        google()
         jcenter()
         mavenCentral()
-        google()
     }
 }
 ```
@@ -41,8 +41,8 @@ allprojects {
 ``` gradle
 buildscript {
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
@@ -52,9 +52,9 @@ buildscript {
 
 allprojects {
     repositories {
+        google()
         jcenter()
         mavenCentral()
-        google()
     }
 }
 ```
