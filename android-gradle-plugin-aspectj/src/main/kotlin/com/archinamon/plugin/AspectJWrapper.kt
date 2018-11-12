@@ -62,7 +62,7 @@ internal sealed class AspectJWrapper(private val scope: ConfigScope): Plugin<Pro
         }
 
         transformer.withConfig(config).prepareProject()
-        module.registerTransform(transformer)
+//        module.registerTransform(transformer)
     }
 
     internal abstract fun getTransformer(project: Project): AspectJTransform
