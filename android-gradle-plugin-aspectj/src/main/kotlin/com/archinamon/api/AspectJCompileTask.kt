@@ -22,6 +22,7 @@ import com.archinamon.AspectJExtension
 import com.archinamon.lang.kotlin.closureOf
 import com.archinamon.plugin.ConfigScope
 import com.archinamon.utils.*
+import org.aspectj.util.FileUtil
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -34,6 +35,7 @@ import java.io.File
 import java.util.*
 
 internal open class AspectJCompileTask : AbstractCompile() {
+    var javaCompileDestinationDir: File? = null
 
     internal class Builder(val project: Project) {
 
@@ -81,6 +83,7 @@ internal open class AspectJCompileTask : AbstractCompile() {
             val task = project.task(options, taskName, closureOf<AspectJCompileTask> task@ {
                 destinationDir = obtainBuildDirectory(android)
                 aspectJWeaver = AspectJWeaver(project)
+                javaCompileDestinationDir = javaCompiler.destinationDir
 
                 source(sources)
                 classpath = classpath()
@@ -156,6 +159,7 @@ internal open class AspectJCompileTask : AbstractCompile() {
 
         aspectJWeaver.classPath = LinkedHashSet(classpath.files)
         aspectJWeaver.doWeave()
+        FileUtil.copyDir(destinationDir, javaCompileDestinationDir)
 
         logCompilationFinish()
     }
