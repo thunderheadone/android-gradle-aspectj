@@ -23,19 +23,24 @@ import com.archinamon.lang.kotlin.closureOf
 import com.archinamon.plugin.ConfigScope
 import com.archinamon.utils.*
 import org.aspectj.util.FileUtil
+import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
 import java.util.*
 
-internal open class AspectJCompileTask : AbstractCompile() {
-    var javaCompileDestinationDir: File? = null
+// TODO: This task doesn't do incremental builds. Is that problem?
+internal open class AspectJCompileTask : ConventionTask() {
+    private var javaCompileDestinationDir: File? = null
+    private var classpath: FileCollection? = null
+    private var destinationDir: File? = null
+
     internal class Builder(val project: Project) {
 
         private lateinit var plugin: Plugin<Project>
@@ -84,17 +89,20 @@ internal open class AspectJCompileTask : AbstractCompile() {
                 aspectJWeaver = AspectJWeaver(project)
                 javaCompileDestinationDir = javaCompiler.destinationDir
 
-                source(sources)
                 classpath = classpath()
                 findCompiledAspectsInClasspath(this, config.includeAspectsFromJar)
 
                 aspectJWeaver.apply {
                     ajSources = sources
-                    inPath shl this@task.destinationDir shl javaCompiler.destinationDir
+                    val destination = this@task.destinationDir
+                    if (destination != null) {
+                        inPath shl destination
+                    }
+                    inPath shl javaCompiler.destinationDir
 
                     targetCompatibility = JavaVersion.VERSION_1_7.toString()
                     sourceCompatibility = JavaVersion.VERSION_1_7.toString()
-                    destinationDir = this@task.destinationDir.absolutePath
+                    destinationDir = this@task.destinationDir?.absolutePath ?: ""
                     bootClasspath = android.getBootClasspath().joinToString(separator = File.pathSeparator)
                     encoding = javaCompiler.options.encoding
 
@@ -134,29 +142,34 @@ internal open class AspectJCompileTask : AbstractCompile() {
         }
 
         private fun findCompiledAspectsInClasspath(task: AspectJCompileTask, aspectsFromJar: Collection<String>) {
-            val classpath: FileCollection = task.classpath
-            val aspects: MutableSet<File> = mutableSetOf()
+            val classpath = task.classpath
+            if (classpath != null) {
+                val aspects: MutableSet<File> = mutableSetOf()
 
-            classpath.forEach { file ->
-                if (aspectsFromJar.isNotEmpty() && DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
-                    logJarAspectAdded(file)
-                    aspects shl file
+                classpath.forEach { file ->
+                    if (aspectsFromJar.isNotEmpty() && DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
+                        logJarAspectAdded(file)
+                        aspects shl file
+                    }
                 }
-            }
 
-            if (aspects.isNotEmpty()) task.aspectJWeaver.aspectPath from aspects
+                if (aspects.isNotEmpty()) task.aspectJWeaver.aspectPath from aspects
+            }
         }
     }
 
     lateinit var aspectJWeaver: AspectJWeaver
 
     @TaskAction
-    override fun compile() {
+    fun compile() {
         logCompilationStart()
 
-        destinationDir.deleteRecursively()
+        destinationDir?.deleteRecursively()
 
-        aspectJWeaver.classPath = LinkedHashSet(classpath.files)
+        if (classpath == null) {
+            throw GradleException("AspectJ compile task classpath null.")
+        }
+        aspectJWeaver.classPath = LinkedHashSet(classpath!!.files)
         aspectJWeaver.doWeave()
 
         if (checkJavaEight(project)) {
