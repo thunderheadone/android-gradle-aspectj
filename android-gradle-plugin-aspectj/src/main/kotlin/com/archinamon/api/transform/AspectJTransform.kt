@@ -141,6 +141,29 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         if (outputDir.isDirectory) FileUtils.deleteDirectoryContents(outputDir)
         FileUtils.mkdirs(outputDir)
 
+        val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
+
+        if (checkJavaEight(project)) {
+            inputs.forEach proceedInputs@{ input ->
+                if (input.directoryInputs.isEmpty() && input.jarInputs.isEmpty())
+                    return@proceedInputs // if no inputs so nothing to proceed
+
+                input.directoryInputs.forEach { dir ->
+                    if (dir.file.isDirectory) {
+                        FileUtils.copyDirectory(dir.file, outputDir);
+                    } else {
+                        FileUtils.copyFileToDirectory(dir.file, outputDir);
+                    }
+                }
+
+                input.jarInputs.forEach { jar ->
+                    copyJar(outputProvider, jar)
+                }
+            }
+            logBypassTransformation()
+            return
+        }
+
         aspectJWeaver.destinationDir = outputDir.absolutePath
         aspectJWeaver.bootClasspath = config.getBootClasspath().joinToString(separator = File.pathSeparator)
 
@@ -154,7 +177,6 @@ internal abstract class AspectJTransform(val project: Project, private val polic
 
         // attaching source classes compiled by compile${variantName}AspectJ task
         includeCompiledAspects(transformInvocation, outputDir)
-        val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
 
         var hasAj = false
         inputs.forEach proceedInputs@ { input ->

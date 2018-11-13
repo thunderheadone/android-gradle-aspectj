@@ -36,7 +36,6 @@ import java.util.*
 
 internal open class AspectJCompileTask : AbstractCompile() {
     var javaCompileDestinationDir: File? = null
-
     internal class Builder(val project: Project) {
 
         private lateinit var plugin: Plugin<Project>
@@ -159,7 +158,10 @@ internal open class AspectJCompileTask : AbstractCompile() {
 
         aspectJWeaver.classPath = LinkedHashSet(classpath.files)
         aspectJWeaver.doWeave()
-        FileUtil.copyDir(destinationDir, javaCompileDestinationDir)
+
+        if (checkJavaEight(project)) {
+            FileUtil.copyDir(destinationDir, javaCompileDestinationDir)
+        }
 
         logCompilationFinish()
     }
