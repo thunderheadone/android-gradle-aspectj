@@ -71,6 +71,8 @@ private fun configureCompiler(project: Project, config: AndroidConfig) {
         // do not configure compiler task for non-test variants in ConfigScope.TEST
         if (config.scope == ConfigScope.TEST && !variantName.contains("androidtest", true))
             return@variantScanner
+        if (config.scope == ConfigScope.STANDARD && variantName.contains("androidtest", true))
+            return@variantScanner
 
         val taskName = "compile${variantName}AspectJ"
         AspectJCompileTask.Builder(project)
