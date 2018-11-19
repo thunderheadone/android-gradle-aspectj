@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -25,7 +26,6 @@ import com.archinamon.utils.*
 import org.aspectj.util.FileUtil
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
@@ -42,17 +42,10 @@ internal open class AspectJCompileTask : ConventionTask() {
     private var destinationDir: File? = null
 
     internal class Builder(val project: Project) {
-
-        private lateinit var plugin: Plugin<Project>
         private lateinit var config: AspectJExtension
         private lateinit var javaCompiler: JavaCompile
         private lateinit var variantName: String
         private lateinit var taskName: String
-
-        fun plugin(plugin: Plugin<Project>): Builder {
-            this.plugin = plugin
-            return this
-        }
 
         fun config(extension: AspectJExtension): Builder {
             this.config = extension
@@ -93,16 +86,16 @@ internal open class AspectJCompileTask : ConventionTask() {
                 findCompiledAspectsInClasspath(this, config.includeAspectsFromJar)
 
                 aspectJWeaver.apply {
-                    ajSources = sources
                     val destination = this@task.destinationDir
-                    if (destination != null) {
-                        inPath shl destination
-                    }
-                    inPath shl javaCompiler.destinationDir
+                            ?: throw GradleException("Aspectj Compile Task Destination null.")
+
+                    ajSources = sources
+
+                    inPath shl destination shl javaCompiler.destinationDir
 
                     targetCompatibility = JavaVersion.VERSION_1_7.toString()
                     sourceCompatibility = JavaVersion.VERSION_1_7.toString()
-                    destinationDir = this@task.destinationDir?.absolutePath ?: ""
+                    destinationDir = destination.absolutePath
                     bootClasspath = android.getBootClasspath().joinToString(separator = File.pathSeparator)
                     encoding = javaCompiler.options.encoding
 
@@ -172,7 +165,19 @@ internal open class AspectJCompileTask : ConventionTask() {
         aspectJWeaver.classPath = LinkedHashSet(classpath!!.files)
         aspectJWeaver.doWeave()
 
-        if (checkJavaEight(project)) {
+        /*
+         * Java8 Enabled Apps only:
+         *
+         * Replacing the javac task output with the processed AJ output
+         * so that the assemble tasks can include the AJ code.
+         * This normally happens in the AspectJTransform.kt transform method,
+         * however in java8 the desugar tool modifies the bytecode constant pool
+         * resulting in an error.
+         *
+         * To avoid the error, perform the weave now during the compilation task,
+         * and bypass the transformer.
+         */
+        if (sourceCompatibilityIsJavaEight(project)) {
             FileUtil.copyDir(destinationDir, javaCompileDestinationDir)
         }
 

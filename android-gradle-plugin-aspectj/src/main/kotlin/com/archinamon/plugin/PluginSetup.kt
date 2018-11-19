@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -17,8 +18,6 @@
 
 package com.archinamon.plugin
 
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.LibraryPlugin
 import com.archinamon.AndroidConfig
 import com.archinamon.AspectJExtension
 import com.archinamon.MISDEFINITION
@@ -28,9 +27,7 @@ import com.archinamon.api.BuildTimeListener
 import com.archinamon.utils.getJavaTask
 import com.archinamon.utils.getVariantDataList
 import org.gradle.api.GradleException
-import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.PluginContainer
 
 internal fun configProject(project: Project, config: AndroidConfig, settings: AspectJExtension) {
     if (settings.extendClasspath) {
@@ -77,7 +74,6 @@ private fun configureCompiler(project: Project, config: AndroidConfig) {
 
         val taskName = "compile${variantName}AspectJ"
         AspectJCompileTask.Builder(project)
-            .plugin(project.plugins.getPlugin(config))
             .config(project.extensions.getByType(AspectJExtension::class.java))
             .compiler(getJavaTask(variant)!!)
             .variant(variant.name)
@@ -96,10 +92,4 @@ private fun checkIfPluginAppliedAfterRetrolambda(project: Project) {
             }
         }
     }
-}
-
-private inline fun <reified T> PluginContainer.getPlugin(config: AndroidConfig): T where T : Plugin<Project> {
-    @Suppress("UNCHECKED_CAST")
-    val plugin: Class<out T> = (if (config.isLibraryPlugin) LibraryPlugin::class.java else AppPlugin::class.java) as Class<T>
-    return getPlugin(plugin)
 }

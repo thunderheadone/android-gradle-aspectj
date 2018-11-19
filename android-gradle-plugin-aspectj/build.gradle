@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -40,7 +41,9 @@ dependencies {
     implementation aspectj.runtime
     implementation aspectj.tools
 
+    testImplementation testLibraries.assertJ
     testImplementation testLibraries.junit
+    testImplementation testLibraries.mockitoKotlin
     testImplementation jetbrains.kotlinStdLib
     testImplementation jetbrains.kotlinTestJunit
     testImplementation gradleApi()
