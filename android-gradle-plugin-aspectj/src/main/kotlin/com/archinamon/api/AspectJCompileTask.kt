@@ -20,6 +20,7 @@ package com.archinamon.api
 
 import com.archinamon.AndroidConfig
 import com.archinamon.AspectJExtension
+import com.archinamon.extensions.aspectJExtension
 import com.archinamon.lang.kotlin.closureOf
 import com.archinamon.plugin.ConfigScope
 import com.archinamon.utils.*
@@ -83,7 +84,7 @@ internal open class AspectJCompileTask : ConventionTask() {
                 javaCompileDestinationDir = javaCompiler.destinationDir
 
                 classpath = classpath()
-                findCompiledAspectsInClasspath(this, config.includeAspectsFromJar)
+                findCompiledAspectsInClasspath(this, project.aspectJExtension.includeAspectsFromJar)
 
                 aspectJWeaver.apply {
                     val destination = this@task.destinationDir
@@ -115,7 +116,7 @@ internal open class AspectJCompileTask : ConventionTask() {
             // javaCompile.classpath does not contain exploded-aar/**/jars/*.jars till first run
             javaCompiler.doLast {
                 task.classpath = classpath()
-                findCompiledAspectsInClasspath(task, config.includeAspectsFromJar)
+                findCompiledAspectsInClasspath(task, project.aspectJExtension.includeAspectsFromJar)
             }
 
             //apply behavior
