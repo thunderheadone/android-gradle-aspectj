@@ -36,7 +36,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
 import java.util.*
 
-// TODO: This task doesn't do incremental builds. Is that problem?
 internal open class AspectJCompileTask : ConventionTask() {
     private var javaCompileDestinationDir: File? = null
     private var classpath: FileCollection? = null
@@ -137,11 +136,11 @@ internal open class AspectJCompileTask : ConventionTask() {
 
         private fun findCompiledAspectsInClasspath(task: AspectJCompileTask, aspectsFromJar: Collection<String>) {
             val classpath = task.classpath
-            if (classpath != null) {
+            if (classpath != null && aspectsFromJar.isNotEmpty()) {
                 val aspects: MutableSet<File> = mutableSetOf()
 
                 classpath.forEach { file ->
-                    if (aspectsFromJar.isNotEmpty() && DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
+                    if (DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
                         logJarAspectAdded(file)
                         aspects shl file
                     }
