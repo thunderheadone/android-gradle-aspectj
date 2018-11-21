@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -26,6 +27,7 @@ import com.android.utils.FileUtils
 import com.archinamon.AndroidConfig
 import com.archinamon.api.AspectJMergeJars
 import com.archinamon.api.AspectJWeaver
+import com.archinamon.extensions.aspectJExtension
 import com.archinamon.plugin.ConfigScope
 import com.archinamon.utils.*
 import com.archinamon.utils.DependencyFilter.isExcludeFilterMatched
@@ -53,7 +55,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         project.afterEvaluate {
             getVariantDataList(config.plugin).forEach(this::setupVariant)
 
-            with(config.aspectj()) {
+            with(project.aspectJExtension) {
                 aspectJWeaver.weaveInfo = weaveInfo
                 aspectJWeaver.debugInfo = debugInfo
                 aspectJWeaver.addSerialVUID = addSerialVersionUID
@@ -129,9 +131,9 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         }
 
         val outputProvider = transformInvocation.outputProvider
-        val includeJars = config.aspectj().includeJar
-        val excludeJars = config.aspectj().excludeJar
-        val includeAspects = config.aspectj().includeAspectsFromJar
+        val includeJars = project.aspectJExtension.includeJar
+        val excludeJars = project.aspectJExtension.excludeJar
+        val includeAspects = project.aspectJExtension.includeAspectsFromJar
 
         if (!transformInvocation.isIncremental) {
             outputProvider.deleteAll()
@@ -140,6 +142,40 @@ internal abstract class AspectJTransform(val project: Project, private val polic
         val outputDir = outputProvider.getContentLocation(TRANSFORM_NAME, outputTypes, scopes, Format.DIRECTORY)
         if (outputDir.isDirectory) FileUtils.deleteDirectoryContents(outputDir)
         FileUtils.mkdirs(outputDir)
+
+        val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
+
+        /*
+         * Only applies to java8 enabled projects:
+         *
+         * Due to Android Gradle Plugin Transformation API not giving us the ability
+         * to configure the desugar tool (either when its run or what it runs on)
+         * we will simply bypass the transformation here by pumping the files out into
+         * the provided output directory.
+         *
+         * In the AspectJCompileTask.kt class we will do the weave and copy the
+         * results into the javac task output so this transformation is not needed.
+         */
+        if (sourceCompatibilityIsJavaEight(project)) {
+            inputs.forEach proceedInputs@{ input ->
+                if (input.directoryInputs.isEmpty() && input.jarInputs.isEmpty())
+                    return@proceedInputs // if no inputs so nothing to proceed
+
+                input.directoryInputs.forEach { dir ->
+                    if (dir.file.isDirectory) {
+                        FileUtils.copyDirectory(dir.file, outputDir)
+                    } else {
+                        FileUtils.copyFileToDirectory(dir.file, outputDir)
+                    }
+                }
+
+                input.jarInputs.forEach { jar ->
+                    copyJar(outputProvider, jar)
+                }
+            }
+            logBypassTransformation()
+            return
+        }
 
         aspectJWeaver.destinationDir = outputDir.absolutePath
         aspectJWeaver.bootClasspath = config.getBootClasspath().joinToString(separator = File.pathSeparator)
@@ -154,7 +190,6 @@ internal abstract class AspectJTransform(val project: Project, private val polic
 
         // attaching source classes compiled by compile${variantName}AspectJ task
         includeCompiledAspects(transformInvocation, outputDir)
-        val inputs = if (modeComplex()) transformInvocation.inputs else transformInvocation.referencedInputs
 
         var hasAj = false
         inputs.forEach proceedInputs@ { input ->
@@ -177,7 +212,7 @@ internal abstract class AspectJTransform(val project: Project, private val polic
                 aspectJWeaver.classPath shl jar.file
 
                 if (modeComplex()) {
-                    val includeAllJars = config.aspectj().includeAllJars
+                    val includeAllJars = project.aspectJExtension.includeAllJars
                     val includeFilterMatched = includeJars.isNotEmpty() && isIncludeFilterMatched(jar.file, includeJars)
                     val excludeFilterMatched = excludeJars.isNotEmpty() && isExcludeFilterMatched(jar.file, excludeJars)
 
