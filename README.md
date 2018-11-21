@@ -23,7 +23,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'com.thunderhead.android:android-gradle-plugin-aspectj:4.0.0'
+        classpath 'com.thunderhead.android:android-gradle-plugin-aspectj:4.0.1'
     }
 }
 ```
@@ -46,7 +46,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'com.thunderhead.android:android-gradle-plugin-aspectj:4.0.0'
+        classpath 'com.thunderhead.android:android-gradle-plugin-aspectj:4.0.1'
     }
 }
 
@@ -147,18 +147,6 @@ Therefore this plugin will save build-time due to bypassing the aspectj-transfor
 
 You are not limited in the amount of provider modules, you can have as many as you need 
 and then include them using `includeAspectsFromJar` parameter in the module which you want to augment.
-
-
-## Test Plugin Configuration
-
-Apply the test plugin instead of the default plugin.
-```groovy
-apply plugin: 'com.thunderhead.android.aspectj-test'
-```
-
-This plugin configuration inherits the `aspectj-ext` behavior with strictly excluding compile and transform tasks from non-test build variants.
-In other words only instrumentation `androidTest` will work with this sub-plugin.
-This won't affect `unitTest` variants.
 
 ## ProGuard
 

@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -19,34 +20,32 @@ package com.archinamon.api
 
 import com.archinamon.AndroidConfig
 import com.archinamon.AspectJExtension
+import com.archinamon.extensions.aspectJExtension
 import com.archinamon.lang.kotlin.closureOf
 import com.archinamon.plugin.ConfigScope
 import com.archinamon.utils.*
+import org.aspectj.util.FileUtil
+import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
 import java.util.*
 
-internal open class AspectJCompileTask : AbstractCompile() {
+internal open class AspectJCompileTask : ConventionTask() {
+    private var javaCompileDestinationDir: File? = null
+    private var classpath: FileCollection? = null
+    private var destinationDir: File? = null
 
     internal class Builder(val project: Project) {
-
-        private lateinit var plugin: Plugin<Project>
         private lateinit var config: AspectJExtension
         private lateinit var javaCompiler: JavaCompile
         private lateinit var variantName: String
         private lateinit var taskName: String
-
-        fun plugin(plugin: Plugin<Project>): Builder {
-            this.plugin = plugin
-            return this
-        }
 
         fun config(extension: AspectJExtension): Builder {
             this.config = extension
@@ -81,18 +80,22 @@ internal open class AspectJCompileTask : AbstractCompile() {
             val task = project.task(options, taskName, closureOf<AspectJCompileTask> task@ {
                 destinationDir = obtainBuildDirectory(android)
                 aspectJWeaver = AspectJWeaver(project)
+                javaCompileDestinationDir = javaCompiler.destinationDir
 
-                source(sources)
                 classpath = classpath()
-                findCompiledAspectsInClasspath(this, config.includeAspectsFromJar)
+                findCompiledAspectsInClasspath(this, project.aspectJExtension.includeAspectsFromJar)
 
                 aspectJWeaver.apply {
+                    val destination = this@task.destinationDir
+                            ?: throw GradleException("Aspectj Compile Task Destination null.")
+
                     ajSources = sources
-                    inPath shl this@task.destinationDir shl javaCompiler.destinationDir
+
+                    inPath shl destination shl javaCompiler.destinationDir
 
                     targetCompatibility = JavaVersion.VERSION_1_7.toString()
                     sourceCompatibility = JavaVersion.VERSION_1_7.toString()
-                    destinationDir = this@task.destinationDir.absolutePath
+                    destinationDir = destination.absolutePath
                     bootClasspath = android.getBootClasspath().joinToString(separator = File.pathSeparator)
                     encoding = javaCompiler.options.encoding
 
@@ -112,7 +115,7 @@ internal open class AspectJCompileTask : AbstractCompile() {
             // javaCompile.classpath does not contain exploded-aar/**/jars/*.jars till first run
             javaCompiler.doLast {
                 task.classpath = classpath()
-                findCompiledAspectsInClasspath(task, config.includeAspectsFromJar)
+                findCompiledAspectsInClasspath(task, project.aspectJExtension.includeAspectsFromJar)
             }
 
             //apply behavior
@@ -132,30 +135,51 @@ internal open class AspectJCompileTask : AbstractCompile() {
         }
 
         private fun findCompiledAspectsInClasspath(task: AspectJCompileTask, aspectsFromJar: Collection<String>) {
-            val classpath: FileCollection = task.classpath
-            val aspects: MutableSet<File> = mutableSetOf()
+            val classpath = task.classpath
+            if (classpath != null && aspectsFromJar.isNotEmpty()) {
+                val aspects: MutableSet<File> = mutableSetOf()
 
-            classpath.forEach { file ->
-                if (aspectsFromJar.isNotEmpty() && DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
-                    logJarAspectAdded(file)
-                    aspects shl file
+                classpath.forEach { file ->
+                    if (DependencyFilter.isIncludeFilterMatched(file, aspectsFromJar)) {
+                        logJarAspectAdded(file)
+                        aspects shl file
+                    }
                 }
-            }
 
-            if (aspects.isNotEmpty()) task.aspectJWeaver.aspectPath from aspects
+                if (aspects.isNotEmpty()) task.aspectJWeaver.aspectPath from aspects
+            }
         }
     }
 
     lateinit var aspectJWeaver: AspectJWeaver
 
     @TaskAction
-    override fun compile() {
+    fun compile() {
         logCompilationStart()
 
-        destinationDir.deleteRecursively()
+        destinationDir?.deleteRecursively()
 
-        aspectJWeaver.classPath = LinkedHashSet(classpath.files)
+        if (classpath == null) {
+            throw GradleException("AspectJ compile task classpath null.")
+        }
+        aspectJWeaver.classPath = LinkedHashSet(classpath!!.files)
         aspectJWeaver.doWeave()
+
+        /*
+         * Java8 Enabled Apps only:
+         *
+         * Replacing the javac task output with the processed AJ output
+         * so that the assemble tasks can include the AJ code.
+         * This normally happens in the AspectJTransform.kt transform method,
+         * however in java8 the desugar tool modifies the bytecode constant pool
+         * resulting in an error.
+         *
+         * To avoid the error, perform the weave now during the compilation task,
+         * and bypass the transformer.
+         */
+        if (sourceCompatibilityIsJavaEight(project)) {
+            FileUtil.copyDir(destinationDir, javaCompileDestinationDir)
+        }
 
         logCompilationFinish()
     }

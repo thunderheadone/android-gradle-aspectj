@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -20,6 +21,8 @@ ext {
     kotlin_version = '1.1.51'
     aspectj_version = '1.8.12'
     junit_version = '4.10'
+    assertj_version = '3.11.1'
+    mockito_kotlin_version = '2.0.0'
     gradlePlugins = [
             kotlin: "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version",
             bintray: 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
@@ -34,7 +37,9 @@ ext {
             tools: "org.aspectj:aspectjtools:$aspectj_version"
     ]
     testLibraries = [
-            junit: "junit:junit:$junit_version"
+            junit: "junit:junit:$junit_version",
+            assertJ: "org.assertj:assertj-core:$assertj_version",
+            mockitoKotlin: "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockito_kotlin_version"
     ]
     android = [
             buildTools: 'com.android.tools.build:gradle:3.0.0'

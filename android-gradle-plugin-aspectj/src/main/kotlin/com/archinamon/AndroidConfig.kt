@@ -1,4 +1,5 @@
 /*
+ *    Copyright 2015 Eduard "Archinamon" Matsukov.
  *    Copyright 2018 the original author or authors.
  *    Copyright 2018 Thunderhead
  *
@@ -23,12 +24,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import java.io.File
 
-const private val ASPECTJ_PLUGIN = "com.archinamon.aspectj"
+private const val ASPECTJ_PLUGIN = "com.archinamon.aspectj"
 const val RETROLAMBDA = "me.tatarka.retrolambda"
 const val MISDEFINITION = "Illegal definition: $ASPECTJ_PLUGIN should be defined after $RETROLAMBDA plugin"
 
-const private val TAG = "AJC:"
-const private val PLUGIN_EXCEPTION = "$TAG You must apply the Android plugin or the Android library plugin"
+private const val TAG = "AJC:"
+private const val PLUGIN_EXCEPTION = "$TAG You must apply the Android plugin or the Android library plugin"
 
 internal class AndroidConfig(val project: Project, val scope: ConfigScope) {
 
@@ -66,9 +67,5 @@ internal class AndroidConfig(val project: Project, val scope: ConfigScope) {
     @Suppress("UNCHECKED_CAST")
     fun getBootClasspath(): List<File> {
         return extAndroid.bootClasspath ?: plugin::class.java.getMethod("getRuntimeJarList").invoke(plugin) as List<File>
-    }
-
-    fun aspectj(): AspectJExtension {
-        return project.extensions.getByType(AspectJExtension::class.java)
     }
 }
