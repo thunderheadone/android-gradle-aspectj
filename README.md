@@ -1,4 +1,4 @@
-![Thunderhead Android Gradle AspectJ](https://www.thunderhead.com/uploads/2015/07/Thunderhead_LogoIcon_Aubergine.png "Thunderhead")
+![Thunderhead Android Gradle AspectJ](https://i.imgur.com/gfizURy.png "Thunderhead")
 
 # Thunderhead Android Gradle Plugin for AspectJ
 
